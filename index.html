@@ -11,7 +11,6 @@
   --green-dark: #1a6b1a;
   --green-light: #e8f5e8;
   --blue: #4D6A92;
-  --gray-50: #f8f9fa;
   --gray-100: #f0f2f4;
   --gray-200: #e2e5e9;
   --gray-300: #cdd2d8;
@@ -77,21 +76,45 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
   font-family: inherit; cursor: pointer; margin-top: 12px;
 }
 .btn--back:hover { background: var(--gray-100); }
+
+/* ── NOAA controls ── */
 #noaaChartControls {
   background: #f4f9f6; border: 1px solid #d8e8df;
   border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
 }
-.noaa-ctrl-row { display: flex; align-items: center; gap: 10px; }
+.noaa-ctrl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .noaa-ctrl-row + .noaa-ctrl-row { margin-top: 8px; }
-#noaaTimeSlider { flex: 1; accent-color: #356257; cursor: pointer; }
-#noaaSliderLabel {
-  font-size: 0.82rem; color: #356257; font-weight: 700;
-  white-space: nowrap; min-width: 100px; text-align: right;
+.noaa-ctrl-label {
+  font-weight: 700; color: #24423d; font-size: 0.88rem; white-space: nowrap;
 }
-#noaaViewBadge {
-  display: none; font-size: 0.75rem; font-weight: 700;
-  background: #d6ede6; color: #1f5c4c; border-radius: 20px;
-  padding: 2px 9px; white-space: nowrap;
+.noaa-year-select {
+  appearance: none;
+  background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23356257'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border: 2px solid #b8d8cc;
+  border-radius: 8px;
+  padding: 6px 30px 6px 12px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1f4a43;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  min-width: 80px;
+}
+.noaa-year-select:focus { outline: none; border-color: #356257; }
+.noaa-arrow {
+  font-size: 1rem; color: #356257; font-weight: 700; flex-shrink: 0;
+}
+.noaa-view-badge {
+  font-size: 0.75rem; font-weight: 700;
+  border-radius: 20px; padding: 3px 10px; white-space: nowrap;
+  transition: all 0.25s;
+}
+.noaa-view-badge.yearly {
+  background: #e3edf5; color: #2b5f87;
+}
+.noaa-view-badge.monthly {
+  background: #d6ede6; color: #1f5c4c;
 }
 .noaa-compare-label {
   display: flex; align-items: center; gap: 8px; cursor: pointer;
@@ -118,8 +141,9 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
 
   <h1>🧪 NOAA Simulator — Test Build</h1>
   <span class="test-label">
-    Slider controls the <strong>year range shown</strong> (2020 → 2026).
-    Showing 1–2 years switches to <strong>monthly view</strong>.
+    Pick any <strong>From / To</strong> year range.
+    1–2 years → <strong>monthly view</strong> with seasonal data.
+    3+ years → <strong>yearly view</strong>.
     Toggle compares Forest Glen vs Maple Valley.
   </span>
 
@@ -140,6 +164,7 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
 
         <div class="noaa-panel-grid">
 
+          <!-- Left: chart + controls -->
           <div class="card" style="margin:0;">
             <p id="noaaInvestigating" style="color:#356257;font-size:0.95rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;"></p>
             <h3 id="noaaPanelTitle" style="color:#1f4a43;margin-bottom:8px;"></h3>
@@ -147,18 +172,32 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
 
             <div style="margin-top:14px;">
 
+              <!-- Year range pickers + comparison toggle -->
               <div id="noaaChartControls">
                 <div class="noaa-ctrl-row">
-                  <label for="noaaTimeSlider"
-                    style="font-weight:700;color:#24423d;font-size:0.88rem;white-space:nowrap;min-width:36px;">
-                    Years
-                  </label>
-                  <input type="range" id="noaaTimeSlider" min="1" max="7" value="7" step="1"
-                    oninput="onNoaaSliderChange(this.value)">
-                  <span id="noaaSliderLabel">2020 – 2026</span>
-                  <span id="noaaViewBadge">Monthly</span>
+                  <span class="noaa-ctrl-label">From</span>
+                  <select id="noaaFromYear" class="noaa-year-select" onchange="onNoaaRangeChange()">
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                  </select>
+                  <span class="noaa-arrow">→</span>
+                  <select id="noaaToYear" class="noaa-year-select" onchange="onNoaaRangeChange()">
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                  </select>
+                  <span id="noaaViewBadge" class="noaa-view-badge yearly">Yearly View</span>
                 </div>
-                <div class="noaa-ctrl-row">
+                <div class="noaa-ctrl-row" style="margin-top:8px;">
                   <label class="noaa-compare-label">
                     <input type="checkbox" id="noaaCompareToggle" onchange="onNoaaCompareToggle(this.checked)">
                     Compare with Maple Valley
@@ -168,7 +207,8 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
               </div>
 
               <canvas id="noaaChart" width="640" height="360"
-                style="width:100%;max-width:100%;height:auto;background:linear-gradient(180deg,#fbfdfc,#f2f7f5);
+                style="width:100%;max-width:100%;height:auto;
+                       background:linear-gradient(180deg,#fbfdfc,#f2f7f5);
                        border:1px solid #d8e3dd;border-radius:12px;display:block;">
               </canvas>
 
@@ -190,6 +230,7 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
             </div>
           </div>
 
+          <!-- Right: journal inputs -->
           <div class="card" style="margin:0;">
             <label style="display:block;font-weight:700;margin-bottom:6px;color:#24423d;">Pattern I Notice</label>
             <textarea id="noaaPattern" class="journal-textarea" placeholder="I notice that..." style="min-height:90px;"></textarea>
@@ -214,13 +255,14 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
 </div>
 
 <script>
+// ─── Annual datasets ───────────────────────────────────────────────────────────
 const indicators = {
   rainfall: {
     name: "Rainfall", unit: "Inches of Rain", color: "#4d7ea8",
     explanation: "Rainfall tells us how much water fell from the sky.",
     tip: "What does the rainfall trend suggest about how dry the land may have been?",
     dataType: "precipitation",
-    years:  ["2020","2021","2022","2023","2024","2025","2026"],
+    years:  [2020,2021,2022,2023,2024,2025,2026],
     values: [26, 24, 21, 18, 15, 13, 11]
   },
   temperature: {
@@ -228,7 +270,7 @@ const indicators = {
     explanation: "Temperature shows how warm the area has been.",
     tip: "What does the temperature trend suggest about how easily plants could dry out?",
     dataType: "temperature",
-    years:  ["2020","2021","2022","2023","2024","2025","2026"],
+    years:  [2020,2021,2022,2023,2024,2025,2026],
     values: [82, 84, 85, 87, 89, 91, 93]
   },
   wind: {
@@ -236,7 +278,7 @@ const indicators = {
     explanation: "Wind conditions change from year to year. Look for patterns and consider what those changes might mean.",
     tip: "How could strong wind change what happens once a fire starts?",
     dataType: "wind",
-    years:  ["2020","2021","2022","2023","2024","2025","2026"],
+    years:  [2020,2021,2022,2023,2024,2025,2026],
     values: [9, 11, 13, 10, 15, 14, 18]
   },
   fuelMoisture: {
@@ -244,24 +286,28 @@ const indicators = {
     explanation: "Fuel moisture tells us how much water is inside grasses, leaves, and small plants.",
     tip: "What does low fuel moisture suggest about how easily grasses and leaves could burn?",
     dataType: "drought",
-    years:  ["2020","2021","2022","2023","2024","2025","2026"],
+    years:  [2020,2021,2022,2023,2024,2025,2026],
     values: [82, 78, 73, 67, 61, 55, 49]
   }
 };
 
+// ─── Seasonal multipliers (Jan–Dec) per data type ──────────────────────────────
 const SEASONAL = {
-  temperature:   [0.958, 0.963, 0.977, 0.993, 1.015, 1.047, 1.065, 1.060, 1.035, 1.008, 0.978, 0.959],
-  precipitation: [1.22,  1.12,  1.06,  0.94,  0.78,  0.62,  0.68,  0.72,  0.82,  0.96,  1.08,  1.20],
-  wind:          [1.04,  1.07,  1.14,  1.12,  1.04,  0.92,  0.88,  0.87,  0.90,  0.94,  0.99,  1.03],
-  drought:       [0.84,  0.86,  0.90,  0.96,  1.02,  1.09,  1.14,  1.16,  1.12,  1.03,  0.91,  0.85]
+  temperature:   [0.958,0.963,0.977,0.993,1.015,1.047,1.065,1.060,1.035,1.008,0.978,0.959],
+  precipitation: [1.22, 1.12, 1.06, 0.94, 0.78, 0.62, 0.68, 0.72, 0.82, 0.96, 1.08, 1.20],
+  wind:          [1.04, 1.07, 1.14, 1.12, 1.04, 0.92, 0.88, 0.87, 0.90, 0.94, 0.99, 1.03],
+  drought:       [0.84, 0.86, 0.90, 0.96, 1.02, 1.09, 1.14, 1.16, 1.12, 1.03, 0.91, 0.85]
 };
-
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const BASE_YEAR   = 2020;
 
+// ─── State ────────────────────────────────────────────────────────────────────
 var currentIndicator = null;
-var _noaaNumYears    = 7;
+var _noaaFromYear    = 2020;
+var _noaaToYear      = 2026;
 var _noaaShowCompare = false;
 
+// ─── Choice buttons ───────────────────────────────────────────────────────────
 function renderNoaaChoices() {
   const grid = document.getElementById('noaaChoices');
   grid.innerHTML = '';
@@ -284,13 +330,16 @@ function openIndicator(key) {
   document.getElementById('noaaPanelTitle').textContent = item.name;
   document.getElementById('noaaExplanation').textContent = item.explanation;
   document.getElementById('noaaTip').textContent = item.tip;
-  _noaaNumYears = 7;
+
+  // Reset controls to full range
+  _noaaFromYear = 2020;
+  _noaaToYear   = 2026;
   _noaaShowCompare = false;
-  document.getElementById('noaaTimeSlider').value = 7;
-  document.getElementById('noaaSliderLabel').textContent = '2020 – 2026';
-  document.getElementById('noaaViewBadge').style.display = 'none';
+  document.getElementById('noaaFromYear').value = '2020';
+  document.getElementById('noaaToYear').value   = '2026';
   document.getElementById('noaaCompareToggle').checked = false;
-  document.getElementById('noaaLegend').style.display = 'none';
+  document.getElementById('noaaLegend').style.display  = 'none';
+  syncToDropdown();
   _noaaRedraw();
 }
 
@@ -300,64 +349,105 @@ function showNoaaChoices() {
   currentIndicator = null;
 }
 
-function onNoaaSliderChange(val) {
-  _noaaNumYears = parseInt(val, 10);
-  const endYear = 2019 + _noaaNumYears;
-  const isMonthly = _noaaNumYears <= 2;
-  document.getElementById('noaaSliderLabel').textContent =
-    _noaaNumYears === 1 ? '2020 only' : '2020 – ' + endYear;
-  document.getElementById('noaaViewBadge').style.display = isMonthly ? 'inline-block' : 'none';
+// ─── Year range change handler ────────────────────────────────────────────────
+function onNoaaRangeChange() {
+  let from = parseInt(document.getElementById('noaaFromYear').value, 10);
+  let to   = parseInt(document.getElementById('noaaToYear').value,   10);
+
+  // If From > To, snap To up to match From (always at least 1 year)
+  if (to < from) {
+    to = from;
+    document.getElementById('noaaToYear').value = String(to);
+  }
+
+  _noaaFromYear = from;
+  _noaaToYear   = to;
+
+  // Keep To options valid — disable years before From
+  syncToDropdown();
+  updateViewBadge();
   _noaaRedraw();
 }
 
+// Disable "To" options that are before the selected "From" year
+function syncToDropdown() {
+  const toSel = document.getElementById('noaaToYear');
+  Array.from(toSel.options).forEach(opt => {
+    opt.disabled = parseInt(opt.value, 10) < _noaaFromYear;
+  });
+  updateViewBadge();
+}
+
+function updateViewBadge() {
+  const span     = document.getElementById('noaaViewBadge');
+  const numYears = _noaaToYear - _noaaFromYear + 1;
+  const monthly  = numYears <= 2;
+  span.textContent = monthly ? '📅 Monthly View' : '📊 Yearly View';
+  span.className   = 'noaa-view-badge ' + (monthly ? 'monthly' : 'yearly');
+}
+
+// ─── Comparison toggle ────────────────────────────────────────────────────────
 function onNoaaCompareToggle(checked) {
   _noaaShowCompare = checked;
   document.getElementById('noaaLegend').style.display = checked ? 'flex' : 'none';
   _noaaRedraw();
 }
 
-function buildMonthlyData(item, numYears) {
-  const annualVals = item.values.slice(0, numYears);
-  const annualYrs  = item.years.slice(0, numYears);
-  const seasonal   = SEASONAL[item.dataType] || Array(12).fill(1.0);
+// ─── Monthly data builder ──────────────────────────────────────────────────────
+// Generates month-by-month data for any 1–2 year window in the dataset.
+function buildMonthlyData(item, fromYear, toYear) {
+  const seasonal = SEASONAL[item.dataType] || Array(12).fill(1.0);
   const labels = [], values = [];
+  const numYears = toYear - fromYear + 1;
+
   for (let y = 0; y < numYears; y++) {
+    const yr      = fromYear + y;
+    const yrIdx   = yr - BASE_YEAR;
+    const thisVal = item.values[yrIdx];
+    const nextVal = item.values[yrIdx + 1] !== undefined ? item.values[yrIdx + 1] : thisVal;
+
     for (let m = 0; m < 12; m++) {
+      // Label: just month name for single year, "Jan '22" style for two years
       labels.push(numYears > 1
-        ? MONTH_NAMES[m] + " '" + annualYrs[y].slice(2)
+        ? MONTH_NAMES[m] + " '" + String(yr).slice(2)
         : MONTH_NAMES[m]);
-      const t = m / 11;
-      const base = y < annualVals.length - 1
-        ? annualVals[y] + (annualVals[y + 1] - annualVals[y]) * t
-        : annualVals[y];
+
+      // Interpolate from this year's value toward next year's across the 12 months
+      const t    = m / 11;
+      const base = thisVal + (nextVal - thisVal) * t;
       values.push(parseFloat((base * seasonal[m]).toFixed(1)));
     }
   }
   return { labels, values };
 }
 
+// ─── Maple Valley derivation ──────────────────────────────────────────────────
 function mapleValleyData(primary, dataType) {
-  const offsets = { wind: -0.09, precipitation: +0.11, temperature: -0.06, drought: -0.10 };
+  const offsets = { wind:-0.09, precipitation:+0.11, temperature:-0.06, drought:-0.10 };
   const base = offsets[dataType] !== undefined ? offsets[dataType] : -0.07;
-  return primary.map((v, i) => {
-    const wave = Math.sin(i * 0.85 + 1.3) * 0.04;
-    return parseFloat((v * (1 + base + wave)).toFixed(1));
-  });
+  return primary.map((v, i) =>
+    parseFloat((v * (1 + base + Math.sin(i * 0.85 + 1.3) * 0.04)).toFixed(1))
+  );
 }
 
+// ─── Canvas renderer ──────────────────────────────────────────────────────────
 function _noaaRedraw() {
   if (!currentIndicator) return;
-  const item = indicators[currentIndicator];
-  const isMonthly = _noaaNumYears <= 2;
-  let labels, primary;
+  const item     = indicators[currentIndicator];
+  const numYears = _noaaToYear - _noaaFromYear + 1;
+  const isMonthly = numYears <= 2;
 
+  // Build dataset for the selected range
+  let labels, primary;
   if (isMonthly) {
-    const monthly = buildMonthlyData(item, _noaaNumYears);
-    labels  = monthly.labels;
-    primary = monthly.values;
+    const md = buildMonthlyData(item, _noaaFromYear, _noaaToYear);
+    labels  = md.labels;
+    primary = md.values;
   } else {
-    labels  = item.years.slice(0, _noaaNumYears);
-    primary = item.values.slice(0, _noaaNumYears);
+    const si = _noaaFromYear - BASE_YEAR;
+    const ei = _noaaToYear   - BASE_YEAR;
+    labels  = item.years.slice(si, ei + 1).map(String);
+    primary = item.values.slice(si, ei + 1);
   }
 
   const maple   = mapleValleyData(primary, item.dataType);
@@ -366,6 +456,7 @@ function _noaaRedraw() {
   const vPad = (maxV - minV) * 0.18 || 2;
   minV -= vPad; maxV += vPad;
 
+  // Canvas setup (HiDPI aware)
   const canvas = document.getElementById('noaaChart');
   if (!canvas) return;
   const ctx  = canvas.getContext('2d');
@@ -374,156 +465,153 @@ function _noaaRedraw() {
   const cssH = 360;
   canvas.width  = cssW * dpr;
   canvas.height = cssH * dpr;
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.setTransform(1,0,0,1,0,0);
   ctx.scale(dpr, dpr);
 
   const W = cssW, H = cssH;
-  const pad = { top:32, right:24, bottom:62, left:58 };
+  const pad = { top:36, right:24, bottom:62, left:58 };
   const gW  = W - pad.left - pad.right;
   const gH  = H - pad.top  - pad.bottom;
   const n   = labels.length;
 
   function xPos(i) { return pad.left + (n > 1 ? (i / (n - 1)) * gW : gW / 2); }
-  function yPos(v) { return pad.top  + gH - ((v - minV) / (maxV - minV || 1)) * gH; }
+  function yPos(v) { return pad.top  + gH - ((v - minV) / ((maxV - minV) || 1)) * gH; }
 
   ctx.clearRect(0, 0, W, H);
 
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#fbfdfc');
-  bg.addColorStop(1, '#f2f7f5');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
+  // Background
+  const bg = ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#fbfdfc'); bg.addColorStop(1,'#f2f7f5');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
 
+  // Chart title (selected range)
+  ctx.fillStyle = '#29433d';
+  ctx.font = 'bold 12px Open Sans, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  const rangeLabel = _noaaFromYear === _noaaToYear
+    ? String(_noaaFromYear) + (isMonthly ? ' — Monthly' : '')
+    : _noaaFromYear + ' – ' + _noaaToYear + (isMonthly ? ' — Monthly' : '');
+  ctx.fillText(rangeLabel, pad.left + gW / 2, 6);
+
+  // Grid lines + Y labels
   for (let g = 0; g <= 4; g++) {
     const gy   = pad.top + (g / 4) * gH;
     const gVal = maxV - (g / 4) * (maxV - minV);
-    ctx.strokeStyle = 'rgba(180,210,198,0.55)';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(180,210,198,0.55)'; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left + gW, gy); ctx.stroke();
     ctx.fillStyle = '#6b8f86';
     ctx.font = 'bold 11px Open Sans, Arial, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
     ctx.fillText(Math.round(gVal), pad.left - 7, gy);
   }
 
+  // Axes
   ctx.strokeStyle = '#7d948d'; ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(pad.left, pad.top);
-  ctx.lineTo(pad.left, H - pad.bottom);
+  ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, H - pad.bottom);
   ctx.lineTo(W - pad.right, H - pad.bottom);
   ctx.stroke();
 
-  const maxXLabels = isMonthly ? (_noaaNumYears === 1 ? 12 : 8) : n;
+  // X labels — thin out if many points
+  const maxXLabels = isMonthly ? (numYears === 1 ? 12 : 8) : n;
   const xStep = Math.max(1, Math.ceil(n / maxXLabels));
   ctx.fillStyle = '#4b605a';
   ctx.font = isMonthly ? '10px Open Sans, Arial, sans-serif' : '12px Open Sans, Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   labels.forEach((lbl, i) => {
     if (i % xStep !== 0 && i !== n - 1) return;
     ctx.fillText(lbl, xPos(i), H - pad.bottom + 6);
   });
 
-  if (isMonthly && _noaaNumYears === 2) {
-    const divX = xPos(11) + (xPos(12) - xPos(11)) / 2;
+  // Year divider line + labels for 2-year monthly view
+  if (isMonthly && numYears === 2) {
+    const divX = (xPos(11) + xPos(12)) / 2;
     ctx.save();
-    ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(100,150,130,0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(divX, pad.top); ctx.lineTo(divX, H - pad.bottom); ctx.stroke();
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle = 'rgba(100,150,130,0.45)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(divX, pad.top + 2); ctx.lineTo(divX, H - pad.bottom); ctx.stroke();
     ctx.restore();
-    ctx.fillStyle = 'rgba(53,98,87,0.45)';
+    ctx.fillStyle = 'rgba(53,98,87,0.5)';
     ctx.font = 'bold 10px Open Sans, Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('2020', xPos(5), pad.top + 4);
-    ctx.fillText('2021', xPos(17), pad.top + 4);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(String(_noaaFromYear),    xPos(5),  pad.top + 4);
+    ctx.fillText(String(_noaaFromYear + 1), xPos(17), pad.top + 4);
   }
 
+  // Y-axis title
   ctx.save();
-  ctx.translate(16, pad.top + gH / 2);
-  ctx.rotate(-Math.PI / 2);
+  ctx.translate(16, pad.top + gH / 2); ctx.rotate(-Math.PI / 2);
   ctx.font = 'bold 11px Open Sans, Arial, sans-serif';
-  ctx.fillStyle = '#29433d';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#29433d'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(item.unit, 0, 0);
   ctx.restore();
 
-  ctx.fillStyle = '#29433d';
-  ctx.font = '12px Open Sans, Arial, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
+  // X-axis title
+  ctx.fillStyle = '#29433d'; ctx.font = '12px Open Sans, Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillText(isMonthly ? 'Month' : 'Year', pad.left + gW / 2, H - 14);
 
+  // ── Line drawing helper ─────────────────────────────────────────────────────
   function drawSeries(data, strokeColor, fillColor, dashed, dotR) {
     if (fillColor) {
       ctx.save();
       ctx.beginPath();
-      data.forEach((v, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(v)) : ctx.lineTo(xPos(i), yPos(v)));
-      ctx.lineTo(xPos(data.length - 1), pad.top + gH);
-      ctx.lineTo(xPos(0), pad.top + gH);
-      ctx.closePath();
-      ctx.fillStyle = fillColor;
-      ctx.fill();
+      data.forEach((v,i) => i===0 ? ctx.moveTo(xPos(i),yPos(v)) : ctx.lineTo(xPos(i),yPos(v)));
+      ctx.lineTo(xPos(data.length-1), pad.top+gH);
+      ctx.lineTo(xPos(0), pad.top+gH);
+      ctx.closePath(); ctx.fillStyle = fillColor; ctx.fill();
       ctx.restore();
     }
     ctx.save();
-    ctx.strokeStyle = strokeColor;
-    ctx.lineWidth   = 2.8;
-    ctx.lineJoin    = 'round';
-    ctx.lineCap     = 'round';
-    if (dashed) ctx.setLineDash([7, 4]);
+    ctx.strokeStyle = strokeColor; ctx.lineWidth = 2.8;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    if (dashed) ctx.setLineDash([7,4]);
     ctx.beginPath();
-    data.forEach((v, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(v)) : ctx.lineTo(xPos(i), yPos(v)));
-    ctx.stroke();
-    ctx.restore();
+    data.forEach((v,i) => i===0 ? ctx.moveTo(xPos(i),yPos(v)) : ctx.lineTo(xPos(i),yPos(v)));
+    ctx.stroke(); ctx.restore();
+
+    // Dots — skip for very dense monthly series
     if (n <= 24) {
-      data.forEach((v, i) => {
-        ctx.beginPath();
-        ctx.arc(xPos(i), yPos(v), dotR || 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = strokeColor;
-        ctx.fill();
+      data.forEach((v,i) => {
+        ctx.beginPath(); ctx.arc(xPos(i), yPos(v), dotR||4.5, 0, Math.PI*2);
+        ctx.fillStyle = strokeColor; ctx.fill();
       });
     }
   }
 
+  // Value labels — yearly view only (monthly is too dense)
   function drawValueLabels(data, color) {
     if (n > 12) return;
     ctx.fillStyle = color;
     ctx.font = '12px Open Sans, Arial, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    data.forEach((v, i) => {
-      ctx.fillText(Math.round(v), xPos(i), yPos(v) - 8);
-    });
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    data.forEach((v,i) => ctx.fillText(Math.round(v), xPos(i), yPos(v) - 8));
   }
 
+  // ── Draw series ─────────────────────────────────────────────────────────────
   if (_noaaShowCompare) {
     drawSeries(maple, '#c4860a', 'rgba(196,134,10,0.07)', true, 3);
     drawValueLabels(maple, '#c4860a');
   }
 
-  const fgFill = ctx.createLinearGradient(0, pad.top, 0, pad.top + gH);
+  const fgFill = ctx.createLinearGradient(0, pad.top, 0, pad.top+gH);
   fgFill.addColorStop(0, 'rgba(46,125,110,0.18)');
   fgFill.addColorStop(1, 'rgba(46,125,110,0.02)');
   drawSeries(primary, '#2e7d6e', fgFill, false, 4.5);
 
+  // White-dot outlines for Forest Glen
   if (n <= 24) {
-    primary.forEach((v, i) => {
-      ctx.beginPath();
-      ctx.arc(xPos(i), yPos(v), 4.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#fff';
-      ctx.fill();
-      ctx.strokeStyle = '#2e7d6e';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+    primary.forEach((v,i) => {
+      ctx.beginPath(); ctx.arc(xPos(i), yPos(v), 4.5, 0, Math.PI*2);
+      ctx.fillStyle = '#fff'; ctx.fill();
+      ctx.strokeStyle = '#2e7d6e'; ctx.lineWidth = 2; ctx.stroke();
     });
   }
   drawValueLabels(primary, '#29433d');
 }
 
+// ─── Init ──────────────────────────────────────────────────────────────────────
 window.addEventListener('resize', () => { if (currentIndicator) _noaaRedraw(); });
 renderNoaaChoices();
 </script>
