@@ -1,366 +1,634 @@
-<!-- NOAA Interactive Simulator -->
-<div class="card">
-  <div id="noaa-simulator">
-    <div style="background:linear-gradient(135deg,#dfeee6,#edf5f9);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;margin-bottom:18px;">
-      <h3 style="margin:0 0 6px;font-size:1.4rem;color:#214a42;">NOAA Data Review Simulator</h3>
-      <p style="margin:0;color:var(--gray-600);">Determine which data you want to prioritize.</p>
-    </div>
-    <div id="noaaChoices" class="decision-grid"></div>
-    <div id="noaaPanel" style="display:none;">
-            <p class="narrative-text" style="margin:0 0 16px;">With your data uploaded, you now need to understand the field conditions.</p>
-      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:start;" class="noaa-panel-grid">
-        <div class="card" style="margin:0;">
-          <p id="noaaInvestigating" style="color:#356257;font-size:0.95rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;"></p>
-          <h3 id="noaaPanelTitle" style="color:#1f4a43;margin-bottom:8px;"></h3>
-          <p id="noaaExplanation" style="color:var(--gray-600);"></p>
-          <div style="margin-top:14px;">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOAA Simulator — Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #228B22;
+  --green-dark: #1a6b1a;
+  --green-light: #e8f5e8;
+  --blue: #4D6A92;
+  --gray-50: #f8f9fa;
+  --gray-100: #f0f2f4;
+  --gray-200: #e2e5e9;
+  --gray-300: #cdd2d8;
+  --gray-400: #9aa2ad;
+  --gray-600: #5a6270;
+  --gray-700: #3d4450;
+  --gray-800: #2a2f38;
+  --white: #ffffff;
+  --yellow: #FFC627;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --radius: 12px;
+  --radius-lg: 18px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Open Sans', Arial, sans-serif;
+  background: linear-gradient(180deg, #f0f4e8, #e8eee0);
+  min-height: 100vh;
+  padding: 32px 16px 60px;
+  color: var(--gray-800);
+  line-height: 1.7;
+}
+.wrap {
+  max-width: 860px;
+  margin: 0 auto;
+}
+h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--green-dark);
+  margin-bottom: 4px;
+}
+.test-label {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  margin-bottom: 24px;
+  background: #fff8e0;
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: inline-block;
+}
+.card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 28px 24px;
+  margin-bottom: 20px;
+  border: 1px solid var(--gray-200);
+}
+.card--journal {
+  border-left: 4px solid var(--blue);
+  background: linear-gradient(135deg, #f5f8fc, var(--white));
+}
+.journal-label {
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.journal-prompt {
+  font-size: 1rem;
+  color: var(--gray-700);
+  margin-bottom: 12px;
+}
+.journal-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px 14px;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  resize: vertical;
+  background: var(--white);
+  color: var(--gray-800);
+  transition: border-color 0.2s;
+}
+.journal-textarea:focus { outline: none; border-color: var(--blue); }
 
-            <!-- NEW: Year slider and comparison toggle controls -->
-            <div id="noaaChartControls" style="background:#f4f9f6;border:1px solid #d8e8df;border-radius:10px;padding:12px;margin-bottom:10px;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-                <label for="noaaTimeSlider" style="font-weight:700;color:#24423d;font-size:0.88rem;white-space:nowrap;min-width:36px;">Year</label>
-                <input
-                  type="range"
-                  id="noaaTimeSlider"
-                  min="0"
-                  max="100"
-                  value="100"
-                  style="flex:1;accent-color:#356257;height:4px;"
-                  oninput="onNoaaSliderChange(this.value)"
-                >
-                <span id="noaaSliderLabel" style="font-size:0.82rem;color:#356257;font-weight:700;white-space:nowrap;min-width:64px;text-align:right;">Current</span>
+.decision-grid { display: grid; gap: 12px; margin: 16px 0; }
+.btn--decision {
+  background: var(--white);
+  color: var(--gray-800);
+  border: 2px solid var(--yellow);
+  padding: 16px 20px;
+  width: 100%;
+  text-align: left;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn--decision:hover { border-color: var(--green); background: var(--green-light); box-shadow: var(--shadow-md); }
+.btn--back {
+  background: transparent;
+  color: var(--gray-600);
+  border: 1px solid var(--gray-300);
+  padding: 8px 18px;
+  font-size: 0.9rem;
+  border-radius: 50px;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 12px;
+}
+.btn--back:hover { background: var(--gray-100); }
+
+/* ── NOAA chart controls ── */
+#noaaChartControls {
+  background: #f4f9f6;
+  border: 1px solid #d8e8df;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.noaa-ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.noaa-ctrl-row + .noaa-ctrl-row { margin-top: 8px; }
+#noaaTimeSlider {
+  flex: 1;
+  accent-color: #356257;
+  cursor: pointer;
+}
+#noaaSliderLabel {
+  font-size: 0.82rem;
+  color: #356257;
+  font-weight: 700;
+  white-space: nowrap;
+  min-width: 76px;
+  text-align: right;
+}
+.noaa-compare-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #24423d;
+  font-weight: 700;
+  user-select: none;
+}
+.noaa-compare-label .sub {
+  font-weight: 400;
+  color: #6b8f86;
+  font-size: 0.82rem;
+}
+#noaaCompareToggle {
+  width: 15px; height: 15px;
+  accent-color: #356257;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#noaaLegend {
+  display: none;
+  margin-top: 8px;
+  gap: 18px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.noaa-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+.noaa-legend-item .swatch {
+  display: inline-block;
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+}
+.noaa-legend-item.forest { color: #1f4a43; }
+.noaa-legend-item.forest .swatch { background: #2e7d6e; }
+.noaa-legend-item.maple  { color: #7a5c2e; }
+.noaa-legend-item.maple  .swatch { background: #c4860a; }
+
+/* noaa-panel-grid responsive */
+.noaa-panel-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 660px) {
+  .noaa-panel-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>🧪 NOAA Simulator — Test Build</h1>
+  <span class="test-label">Standalone test file. Includes: dataset selector · year slider · Maple Valley comparison toggle.</span>
+
+  <div class="card">
+    <div id="noaa-simulator">
+
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#dfeee6,#edf5f9);border:1px solid #e2e5e9;border-radius:18px;padding:20px;margin-bottom:18px;">
+        <h3 style="margin:0 0 6px;font-size:1.4rem;color:#214a42;">NOAA Data Review Simulator</h3>
+        <p style="margin:0;color:#5a6270;">Determine which data you want to prioritize.</p>
+      </div>
+
+      <!-- Choice buttons -->
+      <div id="noaaChoices" class="decision-grid"></div>
+
+      <!-- Data panel (hidden until a dataset is chosen) -->
+      <div id="noaaPanel" style="display:none;">
+        <p style="margin:0 0 16px;font-size:1.05rem;color:#2a2f38;">With your data uploaded, you now need to understand the field conditions.</p>
+
+        <div class="noaa-panel-grid">
+
+          <!-- Left: chart + controls -->
+          <div class="card" style="margin:0;">
+            <p id="noaaInvestigating" style="color:#356257;font-size:0.95rem;font-weight:700;text-transform:uppercase;margin-bottom:6px;"></p>
+            <h3 id="noaaPanelTitle" style="color:#1f4a43;margin-bottom:8px;"></h3>
+            <p id="noaaExplanation" style="color:#5a6270;"></p>
+
+            <div style="margin-top:14px;">
+
+              <!-- NEW: Year slider + comparison toggle -->
+              <div id="noaaChartControls">
+                <div class="noaa-ctrl-row">
+                  <label for="noaaTimeSlider" style="font-weight:700;color:#24423d;font-size:0.88rem;white-space:nowrap;min-width:36px;">Year</label>
+                  <input type="range" id="noaaTimeSlider" min="0" max="100" value="100" oninput="onNoaaSliderChange(this.value)">
+                  <span id="noaaSliderLabel">Current</span>
+                </div>
+                <div class="noaa-ctrl-row">
+                  <label class="noaa-compare-label">
+                    <input type="checkbox" id="noaaCompareToggle" onchange="onNoaaCompareToggle(this.checked)">
+                    Compare with Maple Valley
+                    <span class="sub">(nearby site — no fire yet)</span>
+                  </label>
+                </div>
               </div>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;color:#24423d;font-weight:700;user-select:none;">
-                <input
-                  type="checkbox"
-                  id="noaaCompareToggle"
-                  onchange="onNoaaCompareToggle(this.checked)"
-                  style="width:15px;height:15px;accent-color:#356257;cursor:pointer;"
-                >
-                Compare with Maple Valley
-                <span style="font-weight:400;color:#6b8f86;font-size:0.82rem;">(nearby site, no fire yet)</span>
-              </label>
+              <!-- END NEW -->
+
+              <canvas id="noaaChart" width="640" height="360"
+                style="width:100%;max-width:100%;height:auto;background:linear-gradient(180deg,#fbfdfc,#f2f7f5);border:1px solid #d8e3dd;border-radius:12px;display:block;">
+              </canvas>
+
+              <!-- NEW: Legend -->
+              <div id="noaaLegend" style="display:none;margin-top:8px;gap:18px;justify-content:center;flex-wrap:wrap;">
+                <div class="noaa-legend-item forest">
+                  <span class="swatch"></span> Forest Glen (fire occurred)
+                </div>
+                <div class="noaa-legend-item maple">
+                  <span class="swatch" style="background:transparent;border-top:2px dashed #c4860a;"></span>
+                  Maple Valley (at risk)
+                </div>
+              </div>
+              <!-- END NEW -->
+
             </div>
-            <!-- END NEW: controls -->
 
-            <canvas id="noaaChart" width="640" height="360" style="width:100%;max-width:100%;height:auto;background:linear-gradient(180deg,#fbfdfc,#f2f7f5);border:1px solid #d8e3dd;border-radius:12px;display:block;"></canvas>
-
-            <!-- NEW: Chart legend (hidden until comparison is active) -->
-            <div id="noaaLegend" style="display:none;margin-top:8px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;">
-              <span style="display:flex;align-items:center;gap:6px;font-size:0.83rem;font-weight:700;color:#1f4a43;">
-                <span style="display:inline-block;width:22px;height:3px;background:#2e7d6e;border-radius:2px;"></span>
-                Forest Glen (fire occurred)
-              </span>
-              <span id="noaaLegendMaple" style="display:flex;align-items:center;gap:6px;font-size:0.83rem;font-weight:700;color:#7a5c2e;">
-                <span style="display:inline-block;width:22px;height:3px;background:#c4860a;border-radius:2px;border:none;"></span>
-                Maple Valley (at risk)
-              </span>
+            <div style="margin-top:14px;background:#eef6fb;border:1px solid #d6e6f2;border-radius:12px;padding:12px;">
+              <h4 style="margin:0 0 4px;color:#2b5f87;font-size:0.95rem;">Scientist Tip</h4>
+              <p id="noaaTip" style="margin:0;color:#45697d;font-size:0.95rem;"></p>
             </div>
-            <!-- END NEW: legend -->
+          </div>
 
+          <!-- Right: journal inputs -->
+          <div class="card" style="margin:0;">
+            <label style="display:block;font-weight:700;margin-bottom:6px;color:#24423d;">Pattern I Notice</label>
+            <textarea id="noaaPattern" class="journal-textarea" placeholder="I notice that..." style="min-height:90px;"></textarea>
+            <label style="display:block;font-weight:700;margin-bottom:6px;margin-top:12px;color:#24423d;">Why This Matters for Fire Risk</label>
+            <textarea id="noaaRisk" class="journal-textarea" placeholder="This matters for fire risk because..." style="min-height:90px;"></textarea>
+            <div style="margin-top:12px;">
+              <button class="btn--back" onclick="showNoaaChoices()">← Back to Data Choices</button>
+            </div>
           </div>
-          <div style="margin-top:14px;background:#eef6fb;border:1px solid #d6e6f2;border-radius:12px;padding:12px;">
-            <h4 style="margin:0 0 4px;color:#2b5f87;font-size:0.95rem;">Scientist Tip</h4>
-            <p id="noaaTip" style="margin:0;color:#45697d;font-size:0.95rem;"></p>
-          </div>
-        </div>
-        <div class="card" style="margin:0;">
-          <label style="display:block;font-weight:700;margin-bottom:6px;color:#24423d;">Pattern I Notice</label>
-          <textarea id="noaaPattern" class="journal-textarea" data-key="noaa_pattern" placeholder="I notice that..." style="min-height:90px;" oninput="autoSave('noaa_pattern',this.value);updateNoaaPreview()"></textarea>
-          <label style="display:block;font-weight:700;margin-bottom:6px;margin-top:12px;color:#24423d;">Why This Matters for Fire Risk</label>
-          <textarea id="noaaRisk" class="journal-textarea" data-key="noaa_risk" placeholder="This matters for fire risk because..." style="min-height:90px;" oninput="autoSave('noaa_risk',this.value);updateNoaaPreview()"></textarea>
-          <div style="margin-top:12px;">
-            <button class="btn btn--back" onclick="showNoaaChoices()">← Back to Data Choices</button>
-          </div>
+
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- NEW: Slider + comparison chart logic -->
+  <!-- Field Journal (mirrors the real lesson) -->
+  <div class="card card--journal">
+    <div class="journal-label">📓 Field Journal</div>
+    <p class="journal-prompt">What does your NOAA data suggest about the conditions before the fire, and how might those conditions have helped the fire spread?</p>
+    <textarea class="journal-textarea" placeholder="My NOAA clue suggests that..."></textarea>
+  </div>
+
+</div><!-- /wrap -->
+
 <script>
-(function () {
-
-  // NEW: State for slider and toggle
-  var _noaaSliderPct = 1.0;      // 1.0 = 100 = current conditions
-  var _noaaShowCompare = false;
-
-  // NEW: Year label helper
-  function _noaaYearLabel(val) {
-    var val = parseInt(val, 10);
-    if (val >= 95) return "Current";
-    var yearsAgo = Math.round((100 - val) * 0.2);  // 0–20 years ago range
-    return yearsAgo + " yr" + (yearsAgo === 1 ? "" : "s") + " ago";
+// ─── Dataset definitions (identical to the main lesson) ──────────────────────
+const indicators = {
+  rainfall: {
+    name: "Rainfall",
+    unit: "Inches of Rain",
+    color: "#4d7ea8",
+    explanation: "Rainfall tells us how much water fell from the sky.",
+    tip: "What does the rainfall trend suggest about how dry the land may have been?",
+    dataType: "precipitation",
+    years: ["2020","2021","2022","2023","2024","2025","2026"],
+    values: [26,24,21,18,15,13,11]
+  },
+  temperature: {
+    name: "Temperature",
+    unit: "Average Summer °F",
+    color: "#c97a52",
+    explanation: "Temperature shows how warm the area has been.",
+    tip: "What does the temperature trend suggest about how easily plants could dry out?",
+    dataType: "temperature",
+    years: ["2020","2021","2022","2023","2024","2025","2026"],
+    values: [82,84,85,87,89,91,93]
+  },
+  wind: {
+    name: "Wind",
+    unit: "Average Wind Speed (mph)",
+    color: "#5a8f7b",
+    explanation: "Wind conditions change from year to year. Look for patterns and consider what those changes might mean.",
+    tip: "How could strong wind change what happens once a fire starts?",
+    dataType: "wind",
+    years: ["2020","2021","2022","2023","2024","2025","2026"],
+    values: [9,11,13,10,15,14,18]
+  },
+  fuelMoisture: {
+    name: "Fuel Moisture",
+    unit: "Plant Moisture (%)",
+    color: "#7a9a46",
+    explanation: "Fuel moisture tells us how much water is inside grasses, leaves, and small plants.",
+    tip: "What does low fuel moisture suggest about how easily grasses and leaves could burn?",
+    dataType: "drought",
+    years: ["2020","2021","2022","2023","2024","2025","2026"],
+    values: [82,78,73,67,61,55,49]
   }
+};
 
-  // NEW: Slider change handler
-  window.onNoaaSliderChange = function (val) {
-    _noaaSliderPct = parseInt(val, 10) / 100;
-    var label = document.getElementById("noaaSliderLabel");
-    if (label) label.textContent = _noaaYearLabel(val);
-    _noaaRedraw();
+let currentIndicator = null;
+
+// ─── Render dataset choice buttons ───────────────────────────────────────────
+function renderNoaaChoices() {
+  const grid = document.getElementById('noaaChoices');
+  grid.innerHTML = '';
+  Object.entries(indicators).forEach(([key, item]) => {
+    const btn = document.createElement('button');
+    btn.className = 'btn--decision';
+    btn.innerHTML = `<strong>📊 ${item.name}</strong><br><span style="color:#5a6270;font-size:0.9rem;">${item.explanation}</span>`;
+    btn.onclick = () => openIndicator(key);
+    grid.appendChild(btn);
+  });
+}
+
+function openIndicator(key) {
+  currentIndicator = key;
+  const item = indicators[key];
+  document.getElementById('noaaChoices').style.display = 'none';
+  document.getElementById('noaaPanel').style.display = 'block';
+  document.getElementById('noaaInvestigating').textContent = 'You are investigating: ' + item.name;
+  document.getElementById('noaaPanelTitle').textContent = item.name;
+  document.getElementById('noaaExplanation').textContent = item.explanation;
+  document.getElementById('noaaTip').textContent = item.tip;
+
+  // Reset controls each time a new dataset is opened
+  document.getElementById('noaaTimeSlider').value = 100;
+  document.getElementById('noaaSliderLabel').textContent = 'Current';
+  document.getElementById('noaaCompareToggle').checked = false;
+  document.getElementById('noaaLegend').style.display = 'none';
+  _noaaSliderPct = 1.0;
+  _noaaShowCompare = false;
+
+  _noaaRedraw();
+}
+
+function showNoaaChoices() {
+  document.getElementById('noaaChoices').style.display = '';
+  document.getElementById('noaaPanel').style.display = 'none';
+  currentIndicator = null;
+}
+
+// ─── NEW: Slider state & handler ─────────────────────────────────────────────
+var _noaaSliderPct   = 1.0;
+var _noaaShowCompare = false;
+
+function onNoaaSliderChange(val) {
+  _noaaSliderPct = parseInt(val, 10) / 100;
+  document.getElementById('noaaSliderLabel').textContent = _noaaYearLabel(val);
+  _noaaRedraw();
+}
+
+function _noaaYearLabel(val) {
+  val = parseInt(val, 10);
+  if (val >= 97) return 'Current';
+  var yrs = Math.round((100 - val) * 0.2);
+  return yrs + ' yr' + (yrs === 1 ? '' : 's') + ' ago';
+}
+
+// ─── NEW: Comparison toggle handler ──────────────────────────────────────────
+function onNoaaCompareToggle(checked) {
+  _noaaShowCompare = checked;
+  document.getElementById('noaaLegend').style.display = checked ? 'flex' : 'none';
+  _noaaRedraw();
+}
+
+// ─── NEW: Maple Valley data derivation ───────────────────────────────────────
+// Mirrors Forest Glen's trend but stays slightly lower-risk so students can
+// compare and infer Maple Valley is heading toward trouble — but isn't there yet.
+function _mapleValleyData(primary, dataType) {
+  var offsets = {
+    wind:          -0.09,   // a bit less wind
+    precipitation: +0.11,   // a bit more rain (safer)
+    humidity:      +0.09,   // a bit more humid (safer)
+    temperature:   -0.06,   // a bit cooler (safer)
+    drought:       -0.10    // a bit less drought stress
   };
+  var base = (offsets[dataType] !== undefined) ? offsets[dataType] : -0.07;
+  return primary.map(function(v, i) {
+    var wave = Math.sin(i * 0.85 + 1.3) * 0.04;
+    return parseFloat((v * (1 + base + wave)).toFixed(2));
+  });
+}
 
-  // NEW: Comparison toggle handler
-  window.onNoaaCompareToggle = function (checked) {
-    _noaaShowCompare = checked;
-    var legend = document.getElementById("noaaLegend");
-    if (legend) legend.style.display = checked ? "flex" : "none";
-    _noaaRedraw();
-  };
+// ─── NEW: Unified canvas renderer ────────────────────────────────────────────
+function _noaaRedraw() {
+  if (!currentIndicator) return;
+  var item = indicators[currentIndicator];
 
-  // NEW: Generate Maple Valley data from Forest Glen data.
-  // Maple Valley follows the same trend but is slightly lower-risk
-  // (drier trend is less extreme, winds slightly lower, temps a touch cooler).
-  // This makes it look like a place heading toward trouble, but not yet there.
-  function _mapleValleyVariant(primaryData, dataType) {
-    return primaryData.map(function (v, i) {
-      // Per-dataset offsets: keep Maple Valley "safer" but on a similar trajectory
-      var offsets = {
-        wind:          -0.07,   // slightly lower wind speeds
-        precipitation: +0.10,   // slightly more rain (less risky)
-        humidity:      +0.08,   // slightly higher humidity (less risky)
-        temperature:   -0.05,   // slightly cooler
-        drought:       -0.09,   // slightly less severe drought
-      };
-      var base = offsets[dataType] !== undefined ? offsets[dataType] : -0.06;
-      // Add a small sinusoidal variation so it doesn't look like a flat shift
-      var wave = Math.sin(i * 0.9 + 1.4) * 0.04;
-      return +(v * (1 + base + wave)).toFixed(2);
-    });
-  }
+  var canvas = document.getElementById('noaaChart');
+  if (!canvas) return;
 
-  // NEW: Core canvas renderer.
-  // Reads window._noaaActiveChartData (set by existing chart logic, see below).
-  // Falls back gracefully if no data is available yet.
-  function _noaaRedraw() {
-    var canvas = document.getElementById("noaaChart");
-    if (!canvas) return;
-    var state = window._noaaActiveChartData;
-    if (!state || !state.labels || !state.data) return;
+  // Scale primary data based on slider (regress toward mean for earlier years)
+  var rawData = item.values;
+  var mean = rawData.reduce(function(a,b){ return a+b; }, 0) / rawData.length;
+  var primary = rawData.map(function(v) {
+    return mean + (v - mean) * _noaaSliderPct;
+  });
 
-    var ctx = canvas.getContext("2d");
-    var W = canvas.width;
-    var H = canvas.height;
-    var pad = { top: 28, right: 28, bottom: 48, left: 52 };
+  // Derive Maple Valley data from scaled primary
+  var maple = _mapleValleyData(primary, item.dataType);
 
-    // NEW: Apply slider scaling to primary data
-    var rawPrimary = state.data;
-    var scaledPrimary = rawPrimary.map(function (v, i) {
-      // Earlier years (lower slider) show less extreme values – regress toward a baseline
-      var baseline = rawPrimary.reduce(function (a, b) { return a + b; }, 0) / rawPrimary.length;
-      return baseline + (v - baseline) * _noaaSliderPct;
-    });
+  var labels  = item.years;
+  var allVals = primary.concat(_noaaShowCompare ? maple : []);
+  var minV    = Math.min.apply(null, allVals);
+  var maxV    = Math.max.apply(null, allVals);
+  var vPad    = (maxV - minV) * 0.18 || 2;
+  minV -= vPad; maxV += vPad;
 
-    // NEW: Derive Maple Valley comparison data
-    var scaledMaple = _mapleValleyVariant(scaledPrimary, state.dataType || "wind");
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.getBoundingClientRect();
+  var cssW = rect.width || 640, cssH = 360;
+  canvas.width  = cssW * dpr;
+  canvas.height = cssH * dpr;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr, dpr);
 
-    var labels = state.labels;
-    var allVals = scaledPrimary.concat(_noaaShowCompare ? scaledMaple : []);
-    var minV = Math.min.apply(null, allVals);
-    var maxV = Math.max.apply(null, allVals);
-    var pad_v = (maxV - minV) * 0.15 || 1;
-    minV -= pad_v; maxV += pad_v;
+  var W = cssW, H = cssH;
+  var pad = { top:32, right:28, bottom:56, left:58 };
+  var gW = W - pad.left - pad.right;
+  var gH = H - pad.top  - pad.bottom;
 
-    var gW = W - pad.left - pad.right;
-    var gH = H - pad.top - pad.bottom;
+  function xPos(i) { return pad.left + (i / (labels.length - 1)) * gW; }
+  function yPos(v) { return pad.top  + gH - ((v - minV) / (maxV - minV)) * gH; }
 
-    function xPos(i) { return pad.left + (i / (labels.length - 1)) * gW; }
-    function yPos(v) { return pad.top + gH - ((v - minV) / (maxV - minV)) * gH; }
+  ctx.clearRect(0, 0, W, H);
 
-    ctx.clearRect(0, 0, W, H);
+  // Background
+  var bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#fbfdfc');
+  bg.addColorStop(1, '#f2f7f5');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
 
-    // Background
-    var bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, "#fbfdfc");
-    bg.addColorStop(1, "#f2f7f5");
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-
-    // NEW: Slider "era" shading – dim the left portion if slider < 100
-    if (_noaaSliderPct < 0.98) {
-      var fadeX = pad.left + gW * _noaaSliderPct;
-      ctx.fillStyle = "rgba(220,235,228,0.22)";
-      ctx.fillRect(pad.left, pad.top, fadeX - pad.left, gH);
-      // Vertical "now" marker
-      ctx.save();
-      ctx.setLineDash([5, 4]);
-      ctx.strokeStyle = "rgba(53,98,87,0.35)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(fadeX, pad.top);
-      ctx.lineTo(fadeX, pad.top + gH);
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Grid lines
-    var gridSteps = 5;
-    ctx.strokeStyle = "rgba(180,210,198,0.55)";
-    ctx.lineWidth = 1;
-    for (var g = 0; g <= gridSteps; g++) {
-      var gy = pad.top + (g / gridSteps) * gH;
-      ctx.beginPath();
-      ctx.moveTo(pad.left, gy);
-      ctx.lineTo(pad.left + gW, gy);
-      ctx.stroke();
-      // Y axis labels
-      var gVal = maxV - (g / gridSteps) * (maxV - minV);
-      ctx.fillStyle = "#6b8f86";
-      ctx.font = "bold 11px sans-serif";
-      ctx.textAlign = "right";
-      ctx.fillText(gVal.toFixed(1), pad.left - 6, gy + 4);
-    }
-
-    // X axis labels
-    ctx.fillStyle = "#6b8f86";
-    ctx.font = "11px sans-serif";
-    ctx.textAlign = "center";
-    var step = Math.max(1, Math.floor(labels.length / 8));
-    for (var i = 0; i < labels.length; i += step) {
-      ctx.fillText(labels[i], xPos(i), pad.top + gH + 18);
-    }
-
-    // Y axis title
+  // Slider era shading — greyed region to the right of the "now" marker
+  if (_noaaSliderPct < 0.97) {
+    var markerX = pad.left + gW * _noaaSliderPct;
+    ctx.fillStyle = 'rgba(200,215,208,0.30)';
+    ctx.fillRect(markerX, pad.top, pad.left + gW - markerX, gH);
+    // Dashed vertical "now" line
     ctx.save();
-    ctx.translate(14, pad.top + gH / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.font = "bold 11px sans-serif";
-    ctx.fillStyle = "#356257";
-    ctx.textAlign = "center";
-    ctx.fillText(state.yLabel || "", 0, 0);
+    ctx.setLineDash([5,4]);
+    ctx.strokeStyle = 'rgba(53,98,87,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(markerX, pad.top);
+    ctx.lineTo(markerX, pad.top + gH);
+    ctx.stroke();
     ctx.restore();
+    // Era label
+    ctx.font = 'bold 11px Open Sans, Arial, sans-serif';
+    ctx.fillStyle = 'rgba(53,98,87,0.55)';
+    ctx.textAlign = 'left';
+    ctx.fillText('Showing: ' + _noaaYearLabel(Math.round(_noaaSliderPct * 100)), pad.left + 4, pad.top - 10);
+  }
 
-    // NEW: Helper to draw a line series
-    function drawLine(data, color, lineWidth, dashArr) {
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      if (dashArr) ctx.setLineDash(dashArr);
-      ctx.beginPath();
-      data.forEach(function (v, i) {
-        if (i === 0) ctx.moveTo(xPos(i), yPos(v));
-        else ctx.lineTo(xPos(i), yPos(v));
-      });
-      ctx.stroke();
-      ctx.restore();
-    }
+  // Grid lines + Y labels
+  for (var g = 0; g <= 4; g++) {
+    var gy   = pad.top + (g / 4) * gH;
+    var gVal = maxV - (g / 4) * (maxV - minV);
+    ctx.strokeStyle = 'rgba(180,210,198,0.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left + gW, gy); ctx.stroke();
+    ctx.fillStyle = '#6b8f86';
+    ctx.font = 'bold 11px Open Sans, Arial, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(Math.round(gVal), pad.left - 7, gy + 4);
+  }
 
-    // NEW: Draw Maple Valley line first (behind) if compare is on
-    if (_noaaShowCompare) {
-      // Soft fill under Maple Valley line
+  // Axes
+  ctx.strokeStyle = '#7d948d';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, H - pad.bottom);
+  ctx.lineTo(W - pad.right, H - pad.bottom);
+  ctx.stroke();
+
+  // X labels
+  ctx.fillStyle = '#4b605a';
+  ctx.font = '12px Open Sans, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  labels.forEach(function(lbl, i) {
+    ctx.fillText(lbl, xPos(i), H - pad.bottom + 16);
+  });
+
+  // Y axis title
+  ctx.save();
+  ctx.translate(16, pad.top + gH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.font = 'bold 12px Open Sans, Arial, sans-serif';
+  ctx.fillStyle = '#29433d';
+  ctx.textAlign = 'center';
+  ctx.fillText(item.unit, 0, 0);
+  ctx.restore();
+
+  // X axis label
+  ctx.fillStyle = '#29433d';
+  ctx.font = '13px Open Sans, Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Year', pad.left + gW / 2, H - 10);
+
+  // Helper: draw a line series with optional area fill and dash
+  function drawSeries(data, strokeColor, fillColor, dashed, dotRadius) {
+    // Area fill
+    if (fillColor) {
       ctx.save();
       ctx.beginPath();
-      scaledMaple.forEach(function (v, i) {
-        if (i === 0) ctx.moveTo(xPos(i), yPos(v));
-        else ctx.lineTo(xPos(i), yPos(v));
+      data.forEach(function(v, i) {
+        i === 0 ? ctx.moveTo(xPos(i), yPos(v)) : ctx.lineTo(xPos(i), yPos(v));
       });
-      ctx.lineTo(xPos(scaledMaple.length - 1), pad.top + gH);
+      ctx.lineTo(xPos(data.length - 1), pad.top + gH);
       ctx.lineTo(xPos(0), pad.top + gH);
       ctx.closePath();
-      ctx.fillStyle = "rgba(196,134,10,0.07)";
+      ctx.fillStyle = fillColor;
       ctx.fill();
       ctx.restore();
-      drawLine(scaledMaple, "#c4860a", 2.5, [7, 4]);
-      // Dots
-      scaledMaple.forEach(function (v, i) {
-        ctx.beginPath();
-        ctx.arc(xPos(i), yPos(v), 3, 0, Math.PI * 2);
-        ctx.fillStyle = "#c4860a";
-        ctx.fill();
-      });
     }
-
-    // Primary Forest Glen line fill
+    // Line
     ctx.save();
-    var fillGrad = ctx.createLinearGradient(0, pad.top, 0, pad.top + gH);
-    fillGrad.addColorStop(0, "rgba(46,125,110,0.18)");
-    fillGrad.addColorStop(1, "rgba(46,125,110,0.02)");
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth   = 3;
+    ctx.lineJoin    = 'round';
+    ctx.lineCap     = 'round';
+    if (dashed) ctx.setLineDash([7, 4]);
     ctx.beginPath();
-    scaledPrimary.forEach(function (v, i) {
-      if (i === 0) ctx.moveTo(xPos(i), yPos(v));
-      else ctx.lineTo(xPos(i), yPos(v));
+    data.forEach(function(v, i) {
+      i === 0 ? ctx.moveTo(xPos(i), yPos(v)) : ctx.lineTo(xPos(i), yPos(v));
     });
-    ctx.lineTo(xPos(scaledPrimary.length - 1), pad.top + gH);
-    ctx.lineTo(xPos(0), pad.top + gH);
-    ctx.closePath();
-    ctx.fillStyle = fillGrad;
-    ctx.fill();
+    ctx.stroke();
     ctx.restore();
-
-    drawLine(scaledPrimary, "#2e7d6e", 3, null);
-
-    // Primary dots
-    scaledPrimary.forEach(function (v, i) {
+    // Dots
+    data.forEach(function(v, i) {
       ctx.beginPath();
-      ctx.arc(xPos(i), yPos(v), 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#fff";
+      ctx.arc(xPos(i), yPos(v), dotRadius || 5, 0, Math.PI * 2);
+      ctx.fillStyle = strokeColor;
       ctx.fill();
-      ctx.strokeStyle = "#2e7d6e";
-      ctx.lineWidth = 2;
-      ctx.stroke();
     });
-
-    // NEW: Chart title overlay (shows era)
-    if (_noaaSliderPct < 0.98) {
-      ctx.font = "bold 11px sans-serif";
-      ctx.fillStyle = "rgba(53,98,87,0.55)";
-      ctx.textAlign = "left";
-      ctx.fillText("Showing: " + _noaaYearLabel(Math.round(_noaaSliderPct * 100)), pad.left + 4, pad.top - 8);
-    }
   }
 
-  // NEW: Intercept the existing chart data setter.
-  // Existing code should call window.setNoaaChartData(config) after building its dataset.
-  // If it uses a different pattern, this watcher polls for canvas content being drawn
-  // and re-applies the overlay controls on top without conflicting.
-  window._noaaActiveChartData = window._noaaActiveChartData || null;
-
-  var _origSetNoaaChartData = window.setNoaaChartData;
-  window.setNoaaChartData = function (config) {
-    // Store the canonical dataset so our renderer can always access it
-    window._noaaActiveChartData = config;
-    // Call original if it exists
-    if (typeof _origSetNoaaChartData === "function") {
-      _origSetNoaaChartData(config);
-    }
-    // Re-render with current slider + toggle state
-    _noaaRedraw();
-  };
-
-  // NEW: Also re-render whenever the panel becomes visible (catches initial draw)
-  var _noaaPanelObserver = new MutationObserver(function (mutations) {
-    mutations.forEach(function (m) {
-      if (m.type === "attributes" && m.attributeName === "style") {
-        var panel = document.getElementById("noaaPanel");
-        if (panel && panel.style.display !== "none") {
-          setTimeout(_noaaRedraw, 50);
-        }
-      }
+  // Draw Maple Valley behind Forest Glen
+  if (_noaaShowCompare) {
+    drawSeries(maple, '#c4860a', 'rgba(196,134,10,0.07)', true, 3.5);
+    // Value labels for Maple Valley
+    maple.forEach(function(v, i) {
+      ctx.fillStyle = '#c4860a';
+      ctx.font = '11px Open Sans, Arial, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(v.toFixed(1), xPos(i), yPos(v) - 4);
     });
-  });
-  document.addEventListener("DOMContentLoaded", function () {
-    var panel = document.getElementById("noaaPanel");
-    if (panel) {
-      _noaaPanelObserver.observe(panel, { attributes: true });
-    }
-  });
+  }
 
-})();
+  // Forest Glen area fill
+  var fgFill = ctx.createLinearGradient(0, pad.top, 0, pad.top + gH);
+  fgFill.addColorStop(0, 'rgba(46,125,110,0.18)');
+  fgFill.addColorStop(1, 'rgba(46,125,110,0.02)');
+  drawSeries(primary, '#2e7d6e', fgFill, false, 5);
+
+  // Value labels for Forest Glen (white dot + value above)
+  primary.forEach(function(v, i) {
+    ctx.beginPath();
+    ctx.arc(xPos(i), yPos(v), 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.strokeStyle = '#2e7d6e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#29433d';
+    ctx.font = '12px Open Sans, Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(Math.round(v), xPos(i), yPos(v) - 10);
+  });
+}
+
+// Re-draw on window resize
+window.addEventListener('resize', function() {
+  if (currentIndicator) _noaaRedraw();
+});
+
+// Init
+renderNoaaChoices();
 </script>
-<!-- END NEW: slider + comparison chart logic -->
-
-<div class="card card--journal">
-  <div class="journal-label">📓 Field Journal</div>
-  <p class="journal-prompt">What does your NOAA data suggest about the conditions before the fire, and how might those conditions have helped the fire spread?</p>
-  <textarea class="journal-textarea" data-key="3a1_reflection" oninput="autoSave('3a1_reflection',this.value)" placeholder="My NOAA clue suggests that..."></textarea>
-  <div class="save-indicator" data-save="3a1_reflection"></div>
-</div>
-<div class="btn-row btn-row--between">
-  <button class="btn btn--back" onclick="goTo('section-2')">← Back</button>
-  <button class="btn btn--primary" onclick="goTo('section-3a2')">Continue →</button>
-</div>
-</div>
+</body>
+</html>
