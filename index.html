@@ -237,8 +237,7 @@ h1 { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-botto
     </div>
   </div>
 
-  <div class="card card--journal">
-    <div class="journal-label">📓 Field Journal</div>
+<div id="noaaJournal" class="card card--journal" style="display:none;">    <div class="journal-label">📓 Field Journal</div>
     <p class="journal-prompt">What does your NOAA data suggest about the conditions before the fire, and how might those conditions have helped the fire spread?</p>
     <textarea class="journal-textarea" placeholder="My NOAA clue suggests that..."></textarea>
   </div>
@@ -321,6 +320,7 @@ function openIndicator(key) {
   document.getElementById('noaaPanelTitle').textContent = item.name;
   document.getElementById('noaaExplanation').textContent = item.explanation;
   document.getElementById('noaaTip').textContent = item.tip;
+  document.getElementById('noaaJournal').style.display = 'block';
 
   // Reset controls to full range
   _noaaFromYear = 2020;
@@ -338,6 +338,7 @@ function showNoaaChoices() {
   document.getElementById('noaaChoices').style.display = '';
   document.getElementById('noaaPanel').style.display = 'none';
   currentIndicator = null;
+  document.getElementById('noaaJournal').style.display = 'none';
 }
 
 // ─── Year range change handler ────────────────────────────────────────────────
